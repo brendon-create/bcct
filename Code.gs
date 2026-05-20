@@ -14,12 +14,10 @@ function doPost(e) {
     const activity = data.activity || '未命名活動';
     const time     = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
 
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-
     if (type === 'insurance') {
-      handleInsurance(ss, data, activity, time);
+      handleInsurance(data, activity, time);
     } else {
-      handleOrder(ss, data, activity, time);
+      handleOrder(data, activity, time);
     }
 
     return ContentService
@@ -33,7 +31,7 @@ function doPost(e) {
   }
 }
 
-function handleOrder(ss, data, activity, time) {
+function handleOrder(data, activity, time) {
   const sheet = getOrCreateSheet(SpreadsheetApp.openById(ORDER_SHEET_ID), activity, ['送出時間', '活動', '姓名', '餐點', '價格', '飲料']);
   sheet.appendRow([time, activity, data.name, data.meal, data.price, data.drink]);
 }
