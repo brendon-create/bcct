@@ -196,12 +196,7 @@
 
 <div class="container">
 
-  <div class="no-activity-warn" id="no-activity-warn" style="display:none;">
-    <strong>⚠️ 尚未設定活動名稱</strong>
-    請在網址後面加上 <code>?a=活動名稱</code>，例如：<br>
-    <code>insurance.html?a=5月健行</code><br><br>
-    設定後再將連結分享給成員。
-  </div>
+  <div class="no-activity-warn" id="no-activity-warn" style="display:none;"></div>
 
   <div class="card" id="form-card">
     <h2>被保險人資料填寫</h2>
@@ -294,6 +289,7 @@
   } else {
     badge.textContent = '請先設定活動名稱';
     badge.style.background = '#e0a020';
+    warn.innerHTML = '<strong>⚠️ 尚未設定活動名稱</strong>請在網址後面加上 <code>?a=活動名稱</code>，例如：<br><code>insurance.html?a=5月健行</code><br><br>設定後再將連結分享給成員。';
     warn.style.display = 'block';
   }
 

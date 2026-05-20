@@ -182,13 +182,7 @@
 
 <div class="container">
 
-  <!-- 活動未設定警告（只有在沒有 ?a= 參數時顯示） -->
-  <div class="no-activity-warn" id="no-activity-warn" style="display:none;">
-    <strong>⚠️ 尚未設定活動名稱</strong>
-    請在網址後面加上 <code>?a=活動名稱</code>，例如：<br>
-    <code>index.html?a=5月聚餐</code><br><br>
-    設定後再將連結分享給員工。
-  </div>
+  <div class="no-activity-warn" id="no-activity-warn" style="display:none;"></div>
 
   <!-- 點餐表單 -->
   <div class="card" id="form-card">
@@ -276,6 +270,7 @@
   } else {
     badge.textContent = '請先設定活動名稱';
     badge.style.background = '#e0a020';
+    warn.innerHTML = '<strong>⚠️ 尚未設定活動名稱</strong>請在網址後面加上 <code>?a=活動名稱</code>，例如：<br><code>order.html?a=5月聚餐</code><br><br>設定後再將連結分享給員工。';
     warn.style.display = 'block';
   }
 
