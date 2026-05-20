@@ -36,7 +36,7 @@ function handleOrder(data, activity, time) {
   sheet.appendRow([time, activity, data.name, data.meal, data.price, data.drink]);
 }
 
-function handleInsurance(ss, data, activity, time) {
+function handleInsurance(data, activity, time) {
   const sheet = getOrCreateSheet(SpreadsheetApp.openById(INSURANCE_SHEET_ID), activity, ['送出時間', '活動', '姓名', '身分證字號', '出生日期', '性別', '聯絡電話', '緊急聯絡人', '緊急聯絡人電話', '關係']);
   sheet.appendRow([time, activity, data.name, data.idNumber, data.dob, data.gender, data.phone, data.emergencyName, data.emergencyPhone, data.relationship]);
 }
