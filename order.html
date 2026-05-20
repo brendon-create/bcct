@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BCCT 森入心流 點餐表</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+      background: #f5f0eb;
+      color: #2c2c2c;
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1.4;
+    }
+    header .activity-badge {
+      display: inline-block;
+      margin-top: 10px;
+      background: #c8956c;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 50px;
+      letter-spacing: 0.05em;
+    }
+
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0e8df;
+      color: #1a1a1a;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group:last-of-type { margin-bottom: 0; }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #777;
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e0d8d0;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: #2c2c2c;
+      background: #fafafa;
+      transition: border-color 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .form-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 38px;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #c8956c;
+      background: #fff;
+    }
+
+    .btn-submit {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      background: #c8956c;
+      color: #fff;
+      margin-top: 22px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-submit:hover  { background: #b47d56; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled {
+      background: #ddd;
+      cursor: not-allowed;
+    }
+
+    /* Success state */
+    .success-box {
+      display: none;
+      text-align: center;
+      padding: 32px 20px;
+    }
+    .success-box .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .success-box h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+    .success-box p { color: #888; font-size: 0.9rem; }
+    .success-box .btn-again {
+      margin-top: 20px;
+      display: inline-block;
+      padding: 10px 24px;
+      background: #f0e8df;
+      color: #c8956c;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Error */
+    .error-msg {
+      display: none;
+      background: #fdf0f0;
+      color: #c0392b;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.88rem;
+      margin-top: 12px;
+    }
+
+    /* No activity warning */
+    .no-activity-warn {
+      background: #fffbf0;
+      border: 1.5px solid #f0d080;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      color: #7a5c00;
+      line-height: 1.6;
+    }
+    .no-activity-warn strong { display: block; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>BCCT 森入心流<br>點餐表</h1>
+  <div class="activity-badge" id="activity-badge">載入中…</div>
+</header>
+
+<div class="container">
+
+  <!-- 活動未設定警告（只有在沒有 ?a= 參數時顯示） -->
+  <div class="no-activity-warn" id="no-activity-warn" style="display:none;">
+    <strong>⚠️ 尚未設定活動名稱</strong>
+    請在網址後面加上 <code>?a=活動名稱</code>，例如：<br>
+    <code>index.html?a=5月聚餐</code><br><br>
+    設定後再將連結分享給員工。
+  </div>
+
+  <!-- 點餐表單 -->
+  <div class="card" id="form-card">
+    <h2>填寫點餐</h2>
+
+    <div id="form-inner">
+      <div class="form-group">
+        <label>姓名</label>
+        <input type="text" id="input-name" placeholder="請輸入您的姓名" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label>餐點選擇</label>
+        <select id="input-meal">
+          <option value="" disabled selected>── 請選擇餐點 ──</option>
+          <optgroup label="排餐">
+            <option value="上山雞腿排（原味）|340">上山雞腿排（原味）$340</option>
+            <option value="琥珀燉煮雞腿排（紅酒）|360">琥珀燉煮雞腿排（紅酒）$360</option>
+            <option value="戰鬥系雞腿排（Vodka）|360">戰鬥系雞腿排（Vodka）$360</option>
+            <option value="香煎檸檬雞胸|340">香煎檸檬雞胸 $340</option>
+            <option value="梨香帶骨豬排|390">梨香帶骨豬排 $390</option>
+            <option value="日式香炸竹莢魚|350">日式香炸竹莢魚 $350</option>
+            <option value="香煎細嫩全目鱸魚排|400">香煎細嫩全目鱸魚排 $400</option>
+          </optgroup>
+          <optgroup label="燉飯 ／ 義大利麵">
+            <option value="海綿寶寶燉飯／麵|400">海綿寶寶燉飯／麵 $400</option>
+            <option value="奶油堅果厚培根燉飯／麵|360">奶油堅果厚培根燉飯／麵 $360</option>
+            <option value="炙燒起司德腸燉飯／麵|340">炙燒起司德腸燉飯／麵 $340</option>
+            <option value="咖哩雞肉燉飯／麵|330">咖哩雞肉燉飯／麵 $330</option>
+            <option value="南瓜雞肉燉飯／麵|330">南瓜雞肉燉飯／麵 $330</option>
+            <option value="咖哩時蔬燉飯／麵|300">咖哩時蔬燉飯／麵 $300</option>
+            <option value="南瓜時蔬燉飯／麵|300">南瓜時蔬燉飯／麵 $300</option>
+            <option value="松露野菇時蔬燉飯|380">松露野菇時蔬燉飯 $380</option>
+            <option value="香煎板腱牛燉飯|400">香煎板腱牛燉飯 $400</option>
+            <option value="炙燒起司梨香豬排燉飯|340">炙燒起司梨香豬排燉飯 $340</option>
+            <option value="紅牛肋麵|400">紅牛肋麵 $400</option>
+            <option value="血腥瑪麗雞肉麵|330">血腥瑪麗雞肉麵 $330</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>附餐飲料（4選1）</label>
+        <select id="input-drink">
+          <option value="" disabled selected>── 請選擇飲料 ──</option>
+          <option value="紅茶">紅茶</option>
+          <option value="綠茶">綠茶</option>
+          <option value="美式">美式</option>
+          <option value="蜂蜜水">蜂蜜水</option>
+        </select>
+      </div>
+
+      <button class="btn-submit" id="btn-submit" onclick="submitOrder()">確認送出</button>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <!-- 送出成功畫面 -->
+    <div class="success-box" id="success-box">
+      <div class="icon">✅</div>
+      <h3 id="success-name"></h3>
+      <p>點餐已送出，謝謝！</p>
+      <button class="btn-again" onclick="resetForm()">換人填寫</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── 設定 ──────────────────────────────────────
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhpz8Mvgvsp3UKy1d9JH7qzZYSHUX9YkKuYApuH5TB73UGvNcjUOwYxXKDmWWp5-4y/exec'; // ← 部署後貼上網址
+  // ─────────────────────────────────────────────
+
+  // 從 URL 參數讀取活動名稱
+  const params   = new URLSearchParams(window.location.search);
+  const activity = params.get('a') || '';
+
+  const badge   = document.getElementById('activity-badge');
+  const warn    = document.getElementById('no-activity-warn');
+
+  if (activity) {
+    badge.textContent = activity;
+  } else {
+    badge.textContent = '請先設定活動名稱';
+    badge.style.background = '#e0a020';
+    warn.style.display = 'block';
+  }
+
+  async function submitOrder() {
+    const nameEl  = document.getElementById('input-name');
+    const mealEl  = document.getElementById('input-meal');
+    const drinkEl = document.getElementById('input-drink');
+    const errEl   = document.getElementById('error-msg');
+    const btn     = document.getElementById('btn-submit');
+
+    errEl.style.display = 'none';
+
+    const name  = nameEl.value.trim();
+    const meal  = mealEl.value;
+    const drink = drinkEl.value;
+
+    if (!name)  { showError('請填寫姓名');   return; }
+    if (!meal)  { showError('請選擇餐點');   return; }
+    if (!drink) { showError('請選擇飲料');   return; }
+    if (!activity) { showError('活動名稱未設定，請聯繫主辦人'); return; }
+
+    const [mealName, mealPrice] = meal.split('|');
+
+    btn.disabled    = true;
+    btn.textContent = '送出中…';
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method:  'POST',
+        mode:    'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activity,
+          name,
+          meal: mealName,
+          price: parseInt(mealPrice),
+          drink
+        })
+      });
+
+      // no-cors 無法讀 response，視為成功
+      document.getElementById('form-inner').style.display = 'none';
+      const box = document.getElementById('success-box');
+      box.style.display = 'block';
+      document.getElementById('success-name').textContent = `${name} 的點餐已收到！`;
+
+    } catch (err) {
+      btn.disabled    = false;
+      btn.textContent = '確認送出';
+      showError('送出失敗，請稍後再試或聯繫主辦人');
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('input-name').value  = '';
+    document.getElementById('input-meal').value  = '';
+    document.getElementById('input-drink').value = '';
+    document.getElementById('success-box').style.display  = 'none';
+    document.getElementById('form-inner').style.display   = 'block';
+    const btn = document.getElementById('btn-submit');
+    btn.disabled    = false;
+    btn.textContent = '確認送出';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent    = msg;
+    el.style.display  = 'block';
+  }
+</script>
+</body>
+</html>
