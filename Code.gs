@@ -4,7 +4,8 @@
 //  貼到 Extensions > Apps Script > Code.gs
 // =============================================
 
-const SHEET_ID = '1L69fkJL4x4IxXtP5Gx1S68glfc8Jo6y-K85fwvVCdsg';
+const ORDER_SHEET_ID     = '1XkoxvJfl4fhp4lTBjVHqkY29ixPJZGrEeiF9UoZQqwg';
+const INSURANCE_SHEET_ID = '1L69fkJL4x4IxXtP5Gx1S68glfc8Jo6y-K85fwvVCdsg'; // ← 貼上保險資料的 Google Sheet ID
 
 function doPost(e) {
   try {
@@ -33,29 +34,23 @@ function doPost(e) {
 }
 
 function handleOrder(ss, data, activity, time) {
-  const sheetName = '點餐｜' + activity;
-  let sheet = ss.getSheetByName(sheetName);
-  if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    sheet.appendRow(['送出時間', '活動', '姓名', '餐點', '價格', '飲料']);
-    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
-  }
+  const sheet = getOrCreateSheet(SpreadsheetApp.openById(ORDER_SHEET_ID), activity, ['送出時間', '活動', '姓名', '餐點', '價格', '飲料']);
   sheet.appendRow([time, activity, data.name, data.meal, data.price, data.drink]);
 }
 
 function handleInsurance(ss, data, activity, time) {
-  const sheetName = '意外險｜' + activity;
-  let sheet = ss.getSheetByName(sheetName);
+  const sheet = getOrCreateSheet(SpreadsheetApp.openById(INSURANCE_SHEET_ID), activity, ['送出時間', '活動', '姓名', '身分證字號', '出生日期', '性別', '聯絡電話', '緊急聯絡人', '緊急聯絡人電話', '關係']);
+  sheet.appendRow([time, activity, data.name, data.idNumber, data.dob, data.gender, data.phone, data.emergencyName, data.emergencyPhone, data.relationship]);
+}
+
+function getOrCreateSheet(spreadsheet, name, headers) {
+  let sheet = spreadsheet.getSheetByName(name);
   if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    sheet.appendRow(['送出時間', '活動', '姓名', '身分證字號', '出生日期', '性別', '聯絡電話', '緊急聯絡人', '緊急聯絡人電話', '關係']);
-    sheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+    sheet = spreadsheet.insertSheet(name);
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   }
-  sheet.appendRow([
-    time, activity,
-    data.name, data.idNumber, data.dob, data.gender, data.phone,
-    data.emergencyName, data.emergencyPhone, data.relationship,
-  ]);
+  return sheet;
 }
 
 function doGet(e) {
