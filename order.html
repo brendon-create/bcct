@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BCCT 森入心流 點餐表</title>
-  <meta property="og:title" content="BCCT 森入心流 點餐表" />
+  <title>BCCT 點餐表</title>
+  <meta property="og:title" content="BCCT 點餐表" />
   <meta property="og:description" content="請點選連結填寫您的餐點選擇。" />
   <meta property="og:type" content="website" />
   <style>
@@ -105,6 +105,45 @@
       background: #fff;
     }
 
+    /* 餐點照片卡片 */
+    .meal-photos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .meal-photo-card {
+      border: 2px solid #e0d8d0;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #fafafa;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+    .meal-photo-card img {
+      display: block;
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      background: #eee;
+    }
+    .meal-photo-card span {
+      display: block;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .meal-photo-card.selected {
+      border-color: #c8956c;
+      box-shadow: 0 0 0 3px rgba(200,149,108,0.25);
+    }
+    .meal-photo-card:active { transform: scale(0.98); }
+    @media (max-width: 400px) {
+      .meal-photos { grid-template-columns: 1fr; }
+      .meal-photo-card img { height: 180px; }
+    }
+
     .btn-submit {
       display: block;
       width: 100%;
@@ -171,12 +210,18 @@
       line-height: 1.6;
     }
     .no-activity-warn strong { display: block; margin-bottom: 4px; }
+    .no-activity-warn code {
+      background: #f5ecd0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>BCCT 森入心流<br>點餐表</h1>
+  <h1 id="page-title">BCCT 點餐表</h1>
   <div class="activity-badge" id="activity-badge">載入中…</div>
 </header>
 
@@ -196,45 +241,13 @@
 
       <div class="form-group">
         <label>餐點選擇</label>
-        <select id="input-meal">
-          <option value="" disabled selected>── 請選擇餐點 ──</option>
-          <optgroup label="排餐">
-            <option value="上山雞腿排（原味）|340">上山雞腿排（原味）</option>
-            <option value="琥珀燉煮雞腿排（紅酒）|360">琥珀燉煮雞腿排（紅酒）</option>
-            <option value="戰鬥系雞腿排（Vodka）|360">戰鬥系雞腿排（Vodka）</option>
-            <option value="香煎檸檬雞胸|340">香煎檸檬雞胸</option>
-            <option value="梨香帶骨豬排|390">梨香帶骨豬排</option>
-            <option value="日式香炸竹莢魚|350">日式香炸竹莢魚</option>
-            <option value="香煎細嫩全目鱸魚排|400">香煎細嫩全目鱸魚排</option>
-          </optgroup>
-          <optgroup label="燉飯 ／ 義大利麵">
-            <option value="海綿寶寶燉飯／麵|400">海綿寶寶燉飯／麵</option>
-            <option value="奶油堅果厚培根燉飯／麵|360">奶油堅果厚培根燉飯／麵</option>
-            <option value="炙燒起司德腸燉飯／麵|340">炙燒起司德腸燉飯／麵</option>
-            <option value="咖哩雞肉燉飯／麵|330">咖哩雞肉燉飯／麵</option>
-            <option value="南瓜雞肉燉飯／麵|330">南瓜雞肉燉飯／麵</option>
-            <option value="咖哩時蔬燉飯／麵|300">咖哩時蔬燉飯／麵</option>
-            <option value="南瓜時蔬燉飯／麵|300">南瓜時蔬燉飯／麵</option>
-            <option value="松露野菇時蔬燉飯|380">松露野菇時蔬燉飯</option>
-            <option value="香煎板腱牛燉飯|400">香煎板腱牛燉飯</option>
-            <option value="炙燒起司梨香豬排燉飯|340">炙燒起司梨香豬排燉飯</option>
-            <option value="紅牛肋麵|400">紅牛肋麵</option>
-            <option value="血腥瑪麗雞肉麵|330">血腥瑪麗雞肉麵</option>
-          </optgroup>
-        </select>
+        <div id="meal-slot"><!-- 依餐廳動態產生 --></div>
       </div>
 
       <div class="form-group">
-        <label>附餐飲料（4選1）</label>
+        <label id="drink-label">附餐飲料</label>
         <select id="input-drink">
           <option value="" disabled selected>── 請選擇飲料 ──</option>
-          <option value="紅茶（冰）">紅茶（冰）</option>
-          <option value="綠茶（冰）">綠茶（冰）</option>
-          <option value="美式（冰）">美式（冰）</option>
-          <option value="蜂蜜水">蜂蜜水</option>
-          <option value="紅茶（熱）">紅茶（熱）</option>
-          <option value="綠茶（熱）">綠茶（熱）</option>
-          <option value="美式（熱）">美式（熱）</option>
         </select>
       </div>
 
@@ -255,44 +268,198 @@
 
 <script>
   // ── 設定 ──────────────────────────────────────
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhpz8Mvgvsp3UKy1d9JH7qzZYSHUX9YkKuYApuH5TB73UGvNcjUOwYxXKDmWWp5-4y/exec'; // ← 部署後貼上網址
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhpz8Mvgvsp3UKy1d9JH7qzZYSHUX9YkKuYApuH5TB73UGvNcjUOwYxXKDmWWp5-4y/exec';
+
+  // 每一家合作餐廳一組設定。日後要加餐廳，只要在這裡多一組即可。
+  const RESTAURANTS = {
+    // 森入心流（原本的菜單）
+    '25cafe': {
+      label: '森入心流',
+      mealMode: 'dropdown',
+      showPrice: true,
+      mealGroups: [
+        { label: '排餐', items: [
+          ['上山雞腿排（原味）', 340],
+          ['琥珀燉煮雞腿排（紅酒）', 360],
+          ['戰鬥系雞腿排（Vodka）', 360],
+          ['香煎檸檬雞胸', 340],
+          ['梨香帶骨豬排', 390],
+          ['日式香炸竹莢魚', 350],
+          ['香煎細嫩全目鱸魚排', 400],
+        ]},
+        { label: '燉飯 ／ 義大利麵', items: [
+          ['海綿寶寶燉飯／麵', 400],
+          ['奶油堅果厚培根燉飯／麵', 360],
+          ['炙燒起司德腸燉飯／麵', 340],
+          ['咖哩雞肉燉飯／麵', 330],
+          ['南瓜雞肉燉飯／麵', 330],
+          ['咖哩時蔬燉飯／麵', 300],
+          ['南瓜時蔬燉飯／麵', 300],
+          ['松露野菇時蔬燉飯', 380],
+          ['香煎板腱牛燉飯', 400],
+          ['炙燒起司梨香豬排燉飯', 340],
+          ['紅牛肋麵', 400],
+          ['血腥瑪麗雞肉麵', 330],
+        ]},
+      ],
+      drinks: ['紅茶（冰）', '綠茶（冰）', '美式（冰）', '蜂蜜水', '紅茶（熱）', '綠茶（熱）', '美式（熱）'],
+    },
+
+    // 花岩山林（新的合作餐廳，照片點選）
+    arcadia: {
+      label: '花岩山林',
+      mealMode: 'photos',
+      showPrice: false,
+      photoDir: '花岩山林餐點照片',
+      meals: [
+        { name: '墨魚麵',                 img: '墨魚麵.jpg' },
+        { name: '嫩煎松阪豬燉飯',         img: '嫩煎松阪豬燉飯.jpg' },
+        { name: '嫩煎雞腿排蕃茄義大利麵', img: '嫩煎雞腿排蕃茄義大利麵.jpg' },
+        { name: '惡魔風辣味雞腿腿炒飯',   img: '惡魔風辣味雞腿腿炒飯.jpg' },
+        { name: '牛肝菌時蔬燉飯',         img: '牛肝菌時蔬燉飯.jpg' },
+      ],
+      drinks: ['咖啡（冰）', '咖啡（熱）', '紅茶（冰）', '紅茶（熱）', '果汁'],
+    },
+  };
+
+  // 餐廳代號別名（大小寫、中文都可）
+  const R_ALIASES = {
+    '25cafe': '25cafe', senru: '25cafe', '森入心流': '25cafe',
+    arcadia: 'arcadia', huayan: 'arcadia', '花岩山林': 'arcadia', '花岩': 'arcadia',
+  };
   // ─────────────────────────────────────────────
 
-  // 從 URL 參數讀取活動名稱
   const params   = new URLSearchParams(window.location.search);
-  const activity = params.get('a') || '';
+  const activity  = (params.get('a') || '').trim();       // 客戶公司／活動名稱（也是 Google Sheet 分頁名稱）
+  const rRaw      = (params.get('r') || '25cafe').trim(); // 餐廳代號，沒帶預設 25cafe
+  const rKey      = R_ALIASES[rRaw] || R_ALIASES[rRaw.toLowerCase()] || null;
+  const R         = RESTAURANTS[rKey];
 
-  const badge   = document.getElementById('activity-badge');
-  const warn    = document.getElementById('no-activity-warn');
+  const badge = document.getElementById('activity-badge');
+  const warn  = document.getElementById('no-activity-warn');
+  const title = document.getElementById('page-title');
 
-  if (activity) {
-    badge.textContent = activity;
-  } else {
-    badge.textContent = '請先設定活動名稱';
-    badge.style.background = '#e0a020';
-    warn.innerHTML = '<strong>⚠️ 尚未設定活動名稱</strong>請在網址後面加上 <code>?a=活動名稱</code>，例如：<br><code>order.html?a=5月聚餐</code><br><br>設定後再將連結分享給員工。';
+  let blocked = false;
+
+  if (!R) {
+    blocked = true;
+    title.textContent = 'BCCT 點餐表';
+    badge.textContent = '餐廳代號錯誤';
+    badge.style.background = '#c0392b';
+    warn.innerHTML = '<strong>⚠️ 餐廳代號不正確</strong>網址的 <code>?r=</code> 只能是 <code>25cafe</code>（森入心流）或 <code>arcadia</code>（花岩山林）。';
     warn.style.display = 'block';
+  } else {
+    title.textContent = 'BCCT ' + R.label + ' 點餐表';
+    document.title = 'BCCT ' + R.label + ' 點餐表';
+
+    if (activity) {
+      badge.textContent = R.label + '｜' + activity;
+    } else {
+      blocked = true;
+      badge.textContent = '請先設定公司／活動名稱';
+      badge.style.background = '#e0a020';
+      warn.innerHTML = '<strong>⚠️ 尚未設定公司／活動名稱</strong>請在網址後面加上 <code>&a=公司或活動名稱</code>，例如：<br><code>order.html?r=' + rKey + '&a=ABC公司-9月團購</code><br><br>設定後再把連結分享給該公司員工。這個名稱會直接當作 Google Sheet 的分頁名稱。';
+      warn.style.display = 'block';
+    }
   }
 
+  // ── 依餐廳渲染表單 ──────────────────────────
+  if (R) {
+    renderMeals();
+    renderDrinks();
+  }
+  if (blocked) {
+    document.getElementById('btn-submit').disabled = true;
+  }
+
+  function renderMeals() {
+    const slot = document.getElementById('meal-slot');
+
+    if (R.mealMode === 'photos') {
+      const grid = document.createElement('div');
+      grid.className = 'meal-photos';
+      R.meals.forEach(function (m) {
+        const card = document.createElement('div');
+        card.className = 'meal-photo-card';
+        card.dataset.value = m.name;
+        card.onclick = function () { selectMeal(card); };
+        card.innerHTML =
+          '<img src="' + R.photoDir + '/' + m.img + '" alt="' + m.name + '" loading="lazy">' +
+          '<span>' + m.name + '</span>';
+        grid.appendChild(card);
+      });
+      slot.appendChild(grid);
+
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.id = 'input-meal';
+      slot.appendChild(hidden);
+      return;
+    }
+
+    // dropdown 模式
+    const sel = document.createElement('select');
+    sel.id = 'input-meal';
+    sel.innerHTML = '<option value="" disabled selected>── 請選擇餐點 ──</option>';
+    R.mealGroups.forEach(function (g) {
+      const og = document.createElement('optgroup');
+      og.label = g.label;
+      g.items.forEach(function (it) {
+        const opt = document.createElement('option');
+        opt.value = R.showPrice ? (it[0] + '|' + it[1]) : it[0];
+        opt.textContent = it[0];
+        og.appendChild(opt);
+      });
+      sel.appendChild(og);
+    });
+    slot.appendChild(sel);
+  }
+
+  function selectMeal(card) {
+    document.querySelectorAll('.meal-photo-card').forEach(function (c) {
+      c.classList.remove('selected');
+    });
+    card.classList.add('selected');
+    document.getElementById('input-meal').value = card.dataset.value;
+  }
+
+  function renderDrinks() {
+    const sel = document.getElementById('input-drink');
+    const label = document.getElementById('drink-label');
+    label.textContent = '附餐飲料（' + R.drinks.length + '選1）';
+    R.drinks.forEach(function (d) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ── 送出 ──────────────────────────────────────
   async function submitOrder() {
     const nameEl  = document.getElementById('input-name');
     const mealEl  = document.getElementById('input-meal');
     const drinkEl = document.getElementById('input-drink');
-    const errEl   = document.getElementById('error-msg');
     const btn     = document.getElementById('btn-submit');
 
-    errEl.style.display = 'none';
+    document.getElementById('error-msg').style.display = 'none';
 
     const name  = nameEl.value.trim();
-    const meal  = mealEl.value;
+    const meal  = mealEl ? mealEl.value : '';
     const drink = drinkEl.value;
 
-    if (!name)  { showError('請填寫姓名');   return; }
-    if (!meal)  { showError('請選擇餐點');   return; }
-    if (!drink) { showError('請選擇飲料');   return; }
-    if (!activity) { showError('活動名稱未設定，請聯繫主辦人'); return; }
+    if (!R)        { showError('餐廳代號不正確，請聯繫主辦人'); return; }
+    if (!activity) { showError('公司／活動名稱未設定，請聯繫主辦人'); return; }
+    if (!name)  { showError('請填寫姓名'); return; }
+    if (!meal)  { showError('請選擇餐點'); return; }
+    if (!drink) { showError('請選擇飲料'); return; }
 
-    const [mealName, mealPrice] = meal.split('|');
+    let mealName = meal, mealPrice = '';
+    if (meal.indexOf('|') !== -1) {
+      const parts = meal.split('|');
+      mealName  = parts[0];
+      mealPrice = parseInt(parts[1], 10);
+    }
 
     btn.disabled    = true;
     btn.textContent = '送出中…';
@@ -303,19 +470,19 @@
         mode:    'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          activity,
-          name,
-          meal: mealName,
-          price: parseInt(mealPrice),
-          drink
+          activity: activity,
+          restaurant: R.label,
+          name:  name,
+          meal:  mealName,
+          price: mealPrice,
+          drink: drink
         })
       });
 
-      // no-cors 無法讀 response，視為成功
       document.getElementById('form-inner').style.display = 'none';
       const box = document.getElementById('success-box');
       box.style.display = 'block';
-      document.getElementById('success-name').textContent = `${name} 的點餐已收到！`;
+      document.getElementById('success-name').textContent = name + ' 的點餐已收到！';
 
     } catch (err) {
       btn.disabled    = false;
@@ -325,11 +492,15 @@
   }
 
   function resetForm() {
-    document.getElementById('input-name').value  = '';
-    document.getElementById('input-meal').value  = '';
+    document.getElementById('input-name').value = '';
+    const mealEl = document.getElementById('input-meal');
+    if (mealEl) mealEl.value = '';
+    document.querySelectorAll('.meal-photo-card').forEach(function (c) {
+      c.classList.remove('selected');
+    });
     document.getElementById('input-drink').value = '';
-    document.getElementById('success-box').style.display  = 'none';
-    document.getElementById('form-inner').style.display   = 'block';
+    document.getElementById('success-box').style.display = 'none';
+    document.getElementById('form-inner').style.display  = 'block';
     const btn = document.getElementById('btn-submit');
     btn.disabled    = false;
     btn.textContent = '確認送出';
@@ -337,8 +508,8 @@
 
   function showError(msg) {
     const el = document.getElementById('error-msg');
-    el.textContent    = msg;
-    el.style.display  = 'block';
+    el.textContent   = msg;
+    el.style.display = 'block';
   }
 </script>
 </body>
