@@ -309,7 +309,8 @@
     arcadia: {
       label: '花岩山林',
       mealMode: 'photos',
-      showPrice: false,
+      showPrice: false,   // 客戶點餐頁不顯示價格
+      fixedPrice: 400,    // 但仍寫進 Google Sheet：每人固定 400（包案）
       photoDir: '花岩山林餐點照片',
       meals: [
         { name: '墨魚麵',                 img: '墨魚麵.jpg' },
@@ -454,7 +455,8 @@
     if (!meal)  { showError('請選擇餐點'); return; }
     if (!drink) { showError('請選擇飲料'); return; }
 
-    let mealName = meal, mealPrice = '';
+    let mealName = meal;
+    let mealPrice = (R.fixedPrice != null) ? R.fixedPrice : '';
     if (meal.indexOf('|') !== -1) {
       const parts = meal.split('|');
       mealName  = parts[0];
