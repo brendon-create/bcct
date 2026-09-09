@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【森入心流 Reset in Nature】 團隊療癒計畫</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark: #2d5016;
+      --green-mid: #4a7c2f;
+      --green-light: #7ab648;
+      --earth: #c8956c;
+      --earth-light: #f5ede4;
+      --bg: #f4f0eb;
+      --card: #ffffff;
+      --text: #2c2c2c;
+      --muted: #6b6b6b;
+      --border: #e0d8cf;
+      --highlight: #fff9c4;
+      --admin-bg: #1e2a1a;
+      --admin-accent: #7ab648;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── ADMIN BAR ── */
+    #admin-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--admin-bg);
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+    #admin-bar .admin-label {
+      font-size: 0.75rem;
+      color: var(--admin-accent);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+    #admin-bar input {
+      background: #2e3d26;
+      border: 1px solid #4a6035;
+      color: #fff;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    #admin-bar input:focus { border-color: var(--admin-accent); }
+    #admin-bar input::placeholder { color: #7a8f6a; }
+    #input-slug { width: 160px; }
+    #input-token { width: 240px; font-family: monospace; letter-spacing: 0.05em; }
+
+    #btn-publish {
+      background: var(--admin-accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    #btn-publish:hover { background: #8ecf56; }
+    #btn-publish:disabled { background: #4a6035; cursor: not-allowed; }
+
+    #publish-status {
+      font-size: 0.82rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: none;
+    }
+    #publish-status.success { background: #1a4a1a; color: #7de87d; display: block; }
+    #publish-status.error   { background: #4a1a1a; color: #ff8a8a; display: block; }
+    #publish-status a { color: #b3f5b3; text-underline-offset: 2px; }
+
+    #admin-bar .edit-hint {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: #7a8f6a;
+      white-space: nowrap;
+    }
+
+    /* ── EDIT MODE STYLES ── */
+    [contenteditable="true"] {
+      outline: none;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    [contenteditable="true"]:hover {
+      background: rgba(122, 182, 72, 0.12);
+    }
+    [contenteditable="true"]:focus {
+      background: rgba(122, 182, 72, 0.18);
+      box-shadow: 0 0 0 1px #7ab648;
+    }
+    .key-field[contenteditable="true"] {
+      background: var(--highlight);
+    }
+    .key-field[contenteditable="true"]:hover,
+    .key-field[contenteditable="true"]:focus {
+      background: #fff49a;
+    }
+
+    /* ── PAGE LAYOUT ── */
+    #page-content {
+      padding-bottom: 60px;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(160deg, #2d5016 0%, #4a7c2f 45%, #7ab648 100%);
+      color: #fff;
+      text-align: center;
+      padding: 56px 24px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E") repeat;
+    }
+    .hero-inner { position: relative; }
+    .hero-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 50px;
+      padding: 4px 18px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 800;
+      line-height: 1.3;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+    .hero-sub {
+      font-size: 1rem;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+    .hero-divider {
+      width: 48px;
+      height: 2px;
+      background: rgba(255,255,255,0.5);
+      margin: 20px auto 0;
+      border-radius: 2px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 28px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Greeting */
+    .greeting {
+      font-size: 0.95rem;
+      line-height: 1.85;
+      color: var(--text);
+      padding: 4px 0;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .info-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .info-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .info-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* Checklist */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .check-item {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 6px;
+      align-items: baseline;
+    }
+    .check-num {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--earth);
+      background: var(--earth-light);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .check-num.dot {
+      background: var(--earth-light);
+      font-size: 1rem;
+      color: var(--earth);
+    }
+    .check-text {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .check-text strong { font-weight: 700; color: var(--green-dark); }
+
+    /* Section sub-header */
+    .sub-header {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--earth);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 20px 0 12px;
+    }
+    .sub-header:first-of-type { margin-top: 4px; }
+
+    /* Clothing grid */
+    .cloth-grid { display: flex; flex-direction: column; gap: 10px; }
+    .cloth-row {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .cloth-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--green-mid);
+    }
+    .cloth-value { font-size: 0.9rem; line-height: 1.6; }
+
+    /* Notice blocks */
+    .notice-section { display: flex; flex-direction: column; gap: 16px; }
+    .notice-block {}
+    .notice-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 8px;
+    }
+    .bullet-list { display: flex; flex-direction: column; gap: 6px; }
+    .bullet-item {
+      display: grid;
+      grid-template-columns: 16px 1fr;
+      gap: 6px;
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+    .bullet-dot {
+      color: var(--green-light);
+      font-size: 1rem;
+      margin-top: 2px;
+    }
+
+    /* Special notice */
+    .special-notice {
+      background: linear-gradient(135deg, #fffbe6, #fff9d6);
+      border-left: 3px solid #f0c040;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      margin-top: 12px;
+    }
+    .special-notice strong { color: #8a6000; }
+
+    /* Contact */
+    .contact-grid { display: flex; flex-direction: column; gap: 10px; }
+    .contact-row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .contact-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .contact-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    /* Core spirit */
+    .spirit-box {
+      background: linear-gradient(135deg, #f0f7e8, #e8f5d8);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 4px;
+    }
+    .spirit-quote {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .spirit-body {
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    /* Footer */
+    .page-footer {
+      text-align: center;
+      padding: 24px 16px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .page-footer a { color: var(--green-mid); }
+
+    /* Divider */
+    hr.section-div {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="page-content">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-tag">BCCT 團隊療癒計畫</div>
+      <h1>【森入心流 Reset in Nature】<br>團隊療癒計畫</h1>
+      <p class="hero-sub">行前準備與叮嚀</p>
+      <div class="hero-divider"></div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- 問候語 -->
+    <p class="greeting">
+      親愛的夥伴您好：<br><br>
+      歡迎加入這場專為重啟心流而設計的森林旅程。我們將暫時遠離城市的喧囂，走進自然的頻率中，透過六個療癒儀式找回內在的平靜與團隊創造力。為了確保您有最佳的體驗，請詳閱以下說明：
+    </p>
+
+    <!-- 核心精神 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">🌲</span>
+        <span class="card-title">核心精神</span>
+      </div>
+      <div class="spirit-box">
+        <div class="spirit-quote">能跟自己相處，才能跟別人好好相處</div>
+        <div class="spirit-body">
+          本次活動過程中會有約 30 分鐘的「靈魂獨行」與 20 分鐘的「瀑布靜坐」。我們鼓勵您放下平時生活中、職場上角色，給自己一段從容而安靜的時間，這將是您與團隊重啟能量的關鍵。
+        </div>
+      </div>
+    </div>
+
+    <!-- 活動基本資訊 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📍</span>
+        <span class="card-title">活動基本資訊</span>
+      </div>
+      <div class="info-grid">
+        <div class="info-row">
+          <span class="info-label">活動日期</span>
+          <span class="info-value key-field">2026 年 9 月 11 日 星期五</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">集合時間</span>
+          <span class="info-value key-field">07：25 集合，07：35 準時發車</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">集合地點</span>
+          <span class="info-value key-field">邦鉑辦公室（台北市內湖區新明路 159 號）門口</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">預計返回</span>
+          <span class="info-value key-field">約 17：00 – 17：15 返回辦公室</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">活動地點</span>
+          <span class="info-value key-field">新北市三峽區 雲森瀑布步道 + 花岩山林</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 建議攜帶物品 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">🎒</span>
+        <span class="card-title">建議攜帶物品</span>
+      </div>
+
+      <div class="sub-header">必備項目</div>
+      <div class="checklist">
+        <div class="check-item">
+          <span class="check-num">1</span>
+          <span class="check-text"><strong>穿著：</strong>請穿著舒適、排汗的運動服裝（建議長褲以防蚊蟲）及防滑的運動鞋／登山鞋。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">2</span>
+          <span class="check-text"><strong>雙肩後背包：</strong>建議 20 - 30L 容量的背包，裝水、外套、個人物品。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">3</span>
+          <span class="check-text"><strong>保暖：</strong>山區與瀑布旁氣溫較低，請務必攜帶一件防風防水的外套。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">4</span>
+          <span class="check-text"><strong>更換衣物：</strong>儀式中包含「赤足踩水」，水深只達腳踝高，褲管捲起即可。但若仍擔心褲管弄濕，建議多帶一條輕便長褲備用。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">5</span>
+          <span class="check-text"><strong>小毛巾：</strong>赤足踩水後，穿回襪、鞋之前擦乾雙腳用。（建議也帶一個小塑膠袋裝弄濕了的小毛巾）。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">6</span>
+          <span class="check-text"><strong>雨具：</strong>山區天氣多變，請隨身攜帶雨衣（優於雨傘，以便空出雙手行走，並且不容易因勾到樹枝而跌倒）。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">7</span>
+          <span class="check-text"><strong>飲水：</strong>請自備環保水瓶（建議攜帶至少 600 - 800ml），山林中我們將一起實踐無痕山林（LNT）精神，不使用罐裝礦泉水。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">8</span>
+          <span class="check-text"><strong>防蚊液：</strong>活動區域不是蚊蟲特別多的地方，但仍建議有需要的人可以自己準備防蚊液。</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">9</span>
+          <span class="check-text"><strong>個人藥品</strong>（如有需要）</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num">10</span>
+          <span class="check-text"><strong>健保卡</strong></span>
+        </div>
+      </div>
+
+      <div class="sub-header">選配項目</div>
+      <div class="checklist">
+        <div class="check-item">
+          <span class="check-num dot">·</span>
+          <span class="check-text">帽子（遮陽或保暖）</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num dot">·</span>
+          <span class="check-text">太陽眼鏡（視個人習慣準備）</span>
+        </div>
+        <div class="check-item">
+          <span class="check-num dot">·</span>
+          <span class="check-text">登山杖（步道大部分路段平緩，但仍建議可準備，少部分下切路段可能需要）</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 服裝建議 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">👕</span>
+        <span class="card-title">服裝建議</span>
+      </div>
+      <div class="cloth-grid">
+        <div class="cloth-row">
+          <span class="cloth-label">上身</span>
+          <span class="cloth-value">吸濕排汗材質上衣（淺色系為佳，避免黑色易吸引蚊蟲、蜂類）</span>
+        </div>
+        <div class="cloth-row">
+          <span class="cloth-label">下身</span>
+          <span class="cloth-value">長褲（建議運動褲或登山褲，避免牛仔褲）</span>
+        </div>
+        <div class="cloth-row">
+          <span class="cloth-label">鞋子</span>
+          <span class="cloth-value">防滑運動鞋或登山鞋（步道平緩但有石階）</span>
+        </div>
+        <div class="cloth-row">
+          <span class="cloth-label">外套</span>
+          <span class="cloth-value">即使當天台北晴天溫暖仍建議攜帶薄外套或防風外套（山區溫度較平地低 5 - 8°C）</span>
+        </div>
+        <div class="cloth-row">
+          <span class="cloth-label">襪子</span>
+          <span class="cloth-value">建議穿著中筒襪防蚊及避免登山鞋磨腳</span>
+        </div>
+      </div>
+      <div class="special-notice">
+        <strong>💡 特別提醒：</strong><span>下午植物染工作坊有沾染衣物的可能性，建議穿著輕便、不介意弄髒的衣物。</span>
+      </div>
+    </div>
+
+    <!-- 重要注意事項 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">⚠️</span>
+        <span class="card-title">重要注意事項</span>
+      </div>
+      <div class="notice-section">
+
+        <div class="notice-block">
+          <div class="notice-title">手機排毒</div>
+          <div class="bullet-list">
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>於步道口出發前將收起手機，讓您全心投入自然體驗，離開步道後將歸還。</span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="section-div">
+
+        <div class="notice-block">
+          <div class="notice-title">安全與健康</div>
+          <div class="bullet-list">
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>步道全程平緩，但請依個人身體狀況量力而行。</span>
+            </div>
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>如有心臟病、高血壓、氣喘等慢性疾病，請事先告知 BCCT 人員。</span>
+            </div>
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>活動包含戶外行走與靜坐，請確保身體狀況適合參加，前一天請早點就寢，充分休息。</span>
+            </div>
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>我們將在活動前四天依照天氣預報決定是否如期舉行活動，但如決定如期舉行，仍臨時遇到颱風、豪雨等不可抗之惡劣天氣，活動將延期舉行。</span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="section-div">
+
+        <div class="notice-block">
+          <div class="notice-title">環境友善</div>
+          <div class="bullet-list">
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>請遵守森林遊樂區規定，不餵食野生動物、不破壞植物。</span>
+            </div>
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>自備環保餐具及水壺，減少一次性用品使用。</span>
+            </div>
+            <div class="bullet-item">
+              <span class="bullet-dot">▸</span>
+              <span>垃圾請自行帶走或於回到步道口時集中丟棄於 BCCT 準備的垃圾袋，切勿於森林中丟棄。</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 緊急聯絡 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📞</span>
+        <span class="card-title">緊急聯絡方式</span>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-row">
+          <span class="contact-label">活動聯絡人</span>
+          <span class="contact-value key-field">Brendon</span>
+        </div>
+        <div class="contact-row">
+          <span class="contact-label">聯絡電話</span>
+          <span class="contact-value key-field">0927-815-586</span>
+        </div>
+        <div class="contact-row">
+          <span class="contact-label">Line ID</span>
+          <span class="contact-value key-field">brendon_chen</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 結語 -->
+    <p class="greeting" style="text-align:center; padding: 8px 0 4px;">
+      期待與您一起在森林中重啟心流，找回專注與創造力 ✨
+    </p>
+
+  </div><!-- /container -->
+
+  <div class="page-footer">
+    BCCT 官方 Line：<a href="https://line.me/R/ti/p/@750lyvou" target="_blank" rel="noopener">@750lyvou</a>　｜　官網：<a href="https://www.bcct-world.com" target="_blank" rel="noopener">www.bcct-world.com</a>
+  </div>
+
+</div><!-- /page-content -->
+
+</body>
+</html>
